@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang='pt-br'>
+
+<head>
+    <meta charset='utf-8'>
+    <title>Calculadora</title>
+    <style>
+        :root {
+            --length: 100px;
+        }
+        body {
+            background-color: #b0c4de;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-evenly;
+            row-gap: 1em;
+        }
+        main {
+            padding: 16px;
+            display: grid;
+            align-items: center;
+            background-color: #52525b;
+            width: calc(4*var(--length));
+            border-radius: 5px;
+        }
+        table {
+            border-collapse: collapse;
+        }
+        td {
+            padding: 0px;
+        }
+        input {
+            height: var(--length);
+            padding: 0px;
+            border-width: 0px;
+            font-size: 33px;
+            font-weight: bolder;
+            background-color: #a5a5a5;
+            color: #ffffff;
+            text-shadow: 0px 0px 2px #ffffff;
+            text-align: end;
+        }
+        input[type=text] {
+            padding-right: 0.3em;
+        }
+        input#expressao {
+            width: calc(4*var(--length) - 0.3em);
+            box-shadow: inset 0px 2px 4px #141416;
+        }
+        input#resultado {
+            width: calc(3*var(--length) - 0.3em);
+            box-shadow: inset 0px 0px 10px #141416;
+        }
+        div {
+            width: var(--length);
+            height: var(--length);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            user-select: none;
+            box-shadow: inset 0px 0px 1px #000000;
+            text-shadow: 0px 0px 1px #000000;
+        }
+        .red {
+            background-color: #ff0000;
+        }
+        .gray {
+            background-color: #808080;
+        }
+        .white {
+            background-color: #fff7ed;
+        }
+        .orange {
+            background-color: #ffa500;
+        }
+        aside {
+            height: min-content;
+            width: max(50%, calc(4*var(--length)));
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        aside header {
+            padding: 0.4em;
+            display: flex;
+            align-items: center;
+            justify-content: space-evenly;
+            background-color: #343434;
+            color: #ffffff;
+        }
+        aside header p {
+            font-size: 1.5em;
+            margin: unset;
+        }
+        aside header button {
+            transform: rotate(180deg);
+        }
+        ul {
+            margin: 0px;
+            padding: 0px;
+            background-color: #000000;
+            color: #ffffff;
+        }
+        li {
+            padding-right: 5px;
+            border-top: 1px solid #ffffff;
+            display: block;
+            font-size: 33px;
+            font-weight: bolder;
+            text-align: end;
+        }
+        li p {
+            margin: 0px;
+            font-size: 1em;
+            font-weight: bold;
+        }
+        @media (max-width: 700px) {
+            body {
+                text-align: -webkit-center;
+            }
+            :root {
+                --length: 70px;
+            }
+            nav {
+                width: calc(4*var(--length));
+            }
+        }
+        @media (max-width: 330px) {
+            :root {
+                --length: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <table>
+            <tr>
+                <td colspan="4"><input type="text" id="expressao" disabled></td>
+            </tr>
+            <tr>
+                <td colspan="3"><input type="text" id="resultado" disabled></td>
+                <td><div class="red">AC</div></td>
+            </tr>
+            <tr>
+                <td><div class="white">1</div></td>
+                <td><div class="white">2</div></td>
+                <td><div class="white">3</div></td>
+                <td><div class="gray">+</div></td>
+            </tr>
+            <tr>
+                <td><div class="white">4</div></td>
+                <td><div class="white">5</div></td>
+                <td><div class="white">6</div></td>
+                <td><div class="gray">-</div></td>
+            </tr>
+            <tr>
+                <td><div class="white">7</div></td>
+                <td><div class="white">8</div></td>
+                <td><div class="white">9</div></td>
+                <td><div class="gray">*</div></td>
+            </tr>
+            <tr>
+                <td><div class="white">0</div></td>
+                <td><div class="white">.</div></td>
+                <td><div class="orange">=</div></td>
+                <td><div class="gray">/</div></td>
+            </tr>
+        </table>
+    </main>
+    <aside>
+        <header>
+            <p>Histórico</p>
+            <button>▼</button>
+        </header>
+        <ul></ul>
+    </aside>
+    <script>
+        const EXPRESSAO = document.querySelector("input#expressao");
+        const RESULTADO = document.querySelector("input#resultado");
+        const BOTOES_CALCULADORA = document.querySelectorAll("table div");
+        const HISTORICO = document.querySelector("ul");
+        const BOTAO_HISTORICO = document.querySelector("button");
+
+        function novoHistorico(expressao, resultado) {
+            const NOVO_HISTORICO = document.createElement("li");
+            const NOVA_EXPRESSAO = document.createElement("p");
+            const NOVO_RESULTADO = document.createElement("p");
+
+            NOVA_EXPRESSAO.innerText = expressao;
+            NOVO_RESULTADO.innerText = resultado;
+
+            NOVO_HISTORICO.append(NOVA_EXPRESSAO);
+            NOVO_HISTORICO.append(NOVO_RESULTADO);
+
+            return NOVO_HISTORICO;
+        }
+
+        BOTOES_CALCULADORA.forEach(botao => {
+            botao.addEventListener("click", () => {
+                if (botao.innerText === "=" && EXPRESSAO.value === "")
+                    return;
+
+                if (botao.innerText === "=") {
+                    RESULTADO.value = eval(EXPRESSAO.value);
+                    HISTORICO.append(novoHistorico(EXPRESSAO.value, RESULTADO.value));
+                    EXPRESSAO.value = "";
+                    return;
+                }
+
+                if (botao.innerText === "AC" && RESULTADO.value !== "") {
+                    RESULTADO.value = "";
+                    return;
+                }
+
+                if (botao.innerText === "AC" && RESULTADO.value === "") {
+                    EXPRESSAO.value = EXPRESSAO.value.slice(0, EXPRESSAO.value.length-1);
+                    return;
+                }
+
+                if (RESULTADO.value !== "")
+                    RESULTADO.value = "";
+
+                EXPRESSAO.value += botao.innerText;                
+            });
+        });
+
+        BOTAO_HISTORICO.addEventListener("click", () => {
+            const DISPLAY = HISTORICO.style.display;
+
+            HISTORICO.style.display = DISPLAY === "none" ? "block" : "none";
+            BOTAO_HISTORICO.style.transform = DISPLAY === "none" ? "" : "rotate(0deg)";
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trabalho final</title>
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <script>
+        async function getPacientes() {
+            let pacientes = await $.ajax({
+                url: "https://tiagoifsp.ddns.net/clinicaMedica/pacientes.php",
+                type: "GET"
+            });
+
+            return pacientes;
+        }
+
+        async function getMedicos() {
+            let medicos = await $.ajax({
+                url: "https://tiagoifsp.ddns.net/clinicaMedica/medicos.php",
+                type: "GET"
+            });
+
+            return medicos;
+        }
+
+        async function getEspecialidades() {
+            let especialidades = await $.ajax({
+                url: "https://tiagoifsp.ddns.net/clinicaMedica/especialidades.php",
+                type: "GET"
+            });
+
+            return especialidades;
+        }
+
+        async function getConsultas() {
+            let consultas = await $.ajax({
+                url: "https://tiagoifsp.ddns.net/clinicaMedica/consultas.php",
+                type: "GET"
+            });
+
+            return consultas;
+        }
+
+        async function createPaciente({ nome, dataNascimento }) {
+            await $.ajax({
+                url: "https://tiagoifsp.ddns.net/clinicaMedica/pacientes.php",
+                type: "POST",
+                data: {
+                    nome: nome,
+                    dataNascimento: dataNascimento
+                }
+            });
+        }
+
+        async function createMedico({ nome, idEspecialidade }) {
+            await $.ajax({
+                url: "https://tiagoifsp.ddns.net/clinicaMedica/medicos.php",
+                type: "POST",
+                data: {
+                    nome: nome,
+                    idEspecialidade: idEspecialidade
+                }
+            });
+        }
+
+        async function createConsulta({ idPaciente, idMedico, data }) {
+            await $.ajax({
+                url: "https://tiagoifsp.ddns.net/clinicaMedica/consultas.php",
+                type: "POST",
+                data: {
+                    idPaciente: idPaciente,
+                    idMedico: idMedico,
+                    data: data
+                }
+            });
+        }
+
+        async function editPaciente({ idPaciente, novoNome, novaDataNascimento }) {
+            await $.ajax({
+                url: "https://tiagoifsp.ddns.net/clinicaMedica/pacientes.php",
+                type: "PUT",
+                data: {
+                    id: idPaciente,
+                    nome: novoNome,
+                    dataNascimento: novaDataNascimento
+                }
+            });
+        }
+
+        async function editMedico({ idMedico, novoNome, idNovaEspecialidade }) {
+            await $.ajax({
+                url: "https://tiagoifsp.ddns.net/clinicaMedica/medicos.php",
+                type: "PUT",
+                data: {
+                    id: idMedico,
+                    nome: novoNome,
+                    idEspecialidade: idNovaEspecialidade
+                }
+            });
+        }
+
+        async function editConsulta({ idConsulta, idNovoPaciente, idNovoMedico, novaData }) {
+            await $.ajax({
+                url: "https://tiagoifsp.ddns.net/clinicaMedica/consultas.php",
+                type: "PUT",
+                data: {
+                    id: idConsulta,
+                    idPaciente: idNovoPaciente,
+                    idMedico: idNovoMedico,
+                    data: novaData
+                }
+            });
+        }
+
+        async function deletePaciente(idPaciente) {
+            await $.ajax({
+                url: "https://tiagoifsp.ddns.net/clinicaMedica/pacientes.php?id=" + idPaciente,
+                type: "DELETE"
+            });
+        }
+
+        async function deleteMedico(idMedico) {
+            await $.ajax({
+                url: "https://tiagoifsp.ddns.net/clinicaMedica/medicos.php?id=" + idMedico,
+                type: "DELETE"
+            });
+        }
+
+        async function deleteConsulta(idConsulta) {
+            await $.ajax({
+                url: "https://tiagoifsp.ddns.net/clinicaMedica/consultas.php?id=" + idConsulta,
+                type: "DELETE"
+            });
+        }
+
+        function Random(min, max) {
+            return Math.floor(Math.random() * (max - min)) + min;
+        }
+    </script>
+    <style>
+        * {
+            font-family: sans-serif;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0px;
+            overflow: hidden;
+        }
+        body > header {
+            display: inline-flex;
+            align-items: center;
+            width: 100%;
+            padding: 10px 0px;
+            background-color: skyblue;
+            user-select: none;
+        }
+        img {
+            padding-left: 10px;
+            -webkit-user-drag: none;
+            cursor: pointer;
+        }
+        section.sec-menu {
+            display: inline-flex;
+            justify-content: space-evenly;
+            width: 100%;
+        }
+        div.container {
+            display: grid;
+            justify-items: center;
+            position: relative;
+        }
+        header button {
+            background-color: #faff80;
+            box-shadow: 0px 0px 5px #ff6262;
+            color: #ad0000;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bolder;
+            padding: 10px;
+            cursor: pointer;
+        }
+        div.container:nth-child(3) button {
+            cursor: pointer;
+        }
+        div.container button:hover, div.container > ul:hover + button {
+            background-color: #ffff44;
+            color: #ff0e0e;
+            box-shadow: 0px 0px 5px #ff0000;
+        }
+        div.container div {
+            position: absolute;
+            padding: 5px;
+            top: 37px;
+            pointer-events: none;
+        }
+        button:hover + div, div.container div:hover {
+            pointer-events: auto;
+        }
+        
+        ul {
+            list-style: none;
+            margin: 0px;
+            padding: 6px;
+            border-radius: 10px;
+            box-shadow: inset 0px 0px 2px #0037ff;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            pointer-events: none;
+            background-color: #ceffee;
+            opacity: 0;
+        }
+        button:hover + div ul, div.container div:hover ul, ul:hover {
+            opacity: 1;
+            transform: translateY(5px);
+            pointer-events: auto;
+        }
+        li {
+            text-align: center;
+            margin: 2px;
+            cursor: pointer;
+            font-family: sans-serif;
+            font-size: 18px;
+            color: #404040;
+            text-shadow: 0px 0px 0px #404040;
+        }
+        li:nth-child(1) {
+            border-bottom: 1px solid #979797;
+        }
+        article {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: calc(100vh - 78px);
+            z-index: -2;
+            background-color: #f5f5f5;
+            color: #1f1f1f;
+            padding: 10px 0px 0px;
+            overflow: overlay;
+        }
+        article header {
+            font-size: 35px;
+            font-family: sans-serif;
+            padding: 10px;
+            text-align: center;
+        }
+        table {
+            width: fit-content;
+            font-size: 20px;
+            border-collapse: collapse;
+        }
+        th {
+            border-bottom: 2px solid #cdcdcd;
+            padding: 10px 3px;
+        }
+        td {
+            text-align: center;
+            border-top: 1px solid #bbb9b9;
+            padding: 7px 10px;
+        }
+        td button {
+            border-radius: 5px;
+            border: none;
+            padding: 6px;
+            font-size: 16px;
+            text-shadow: 0px 0px 0px #444444;
+        }
+        td button:nth-child(1) {
+            background-color: #70ff85;
+        }
+        td button:nth-child(1):hover {
+            background-color: #38ff26;
+        }
+        td button:nth-child(2) {
+            background-color: #ffff6b;
+        }
+        td button:nth-child(2):hover {
+            background-color: #fff425;
+        }
+        td button:nth-child(3) {
+            background-color: #ff8c8c;
+        }
+        td button:nth-child(3):hover {
+            background-color: #ff2f2f;
+        }
+        article#cadastrar::-webkit-scrollbar {
+            width: 8px;
+            background-color: transparent;
+        }
+        article#cadastrar::-webkit-scrollbar-thumb {
+            background-color: gray;
+            border-radius: 10px;
+        }
+        article#cadastrar section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        article#cadastrar section p {
+            margin: 7px;
+            font-size: 23px;
+        }
+        article#cadastrar section input, article#cadastrar select {
+            width: 200px;
+            height: 30px;
+            padding: 0px;
+            font-size: 18px;
+            border-radius: 10px;
+            border: 1px solid #4c4c4c;
+            box-shadow: 0px 0px 5px #4c4c4c;
+        }
+        article#cadastrar section button {
+            margin: 10px 0px 0px;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #4c4c4c;
+            box-shadow: 0px 0px 5px #ff0000;
+            text-shadow: 0px 0px 0px #4c4c4c;
+            font-size: 18px;
+            background-color: #95fcff;
+            color: #ff0e0e;
+        }
+        article#cadastrar section button:hover {
+            background-color: #35faff;
+        }
+        article#listar_consultas {
+            position: absolute;
+            top: 0px;
+            height: calc(100vh - 10px);
+            background-color: #0000009c;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        article#listar_consultas section {
+            background-color: #efef8a;
+            border: 30px solid #4c2a0f;
+            border-radius: 10px;
+            height: 80vh;
+            overflow: overlay;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        article#listar_consultas section::-webkit-scrollbar {
+            width: 7px;
+            background-color: transparent;
+        }
+        article#listar_consultas section::-webkit-scrollbar-thumb {
+            border-radius: 10px;
+            background-color: #ffffff;
+            box-shadow: inset 0px 0px 3px #424242;
+        }
+        article#listar_consultas div.container {
+            position: absolute;
+            top: 10px;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+        }
+        article#listar_consultas .em_cima, article#listar_consultas .embaixo {
+            display: flex;
+        }
+        article#listar_consultas div.quadrado {
+            width: 50px;
+            height: 36px;
+            background-color: gray;
+        }
+        article#listar_consultas .em_cima .triangulo:nth-child(1) {
+            border-top: 36px solid gray;
+            border-left: 25px solid transparent;
+        }
+        article#listar_consultas .em_cima .triangulo:nth-child(3) {
+            border-top: 36px solid gray;
+            border-right: 25px solid transparent;
+        }
+        article#listar_consultas .embaixo .triangulo:nth-child(1) {
+            border-bottom: 36px solid gray;
+            border-left: 17px solid transparent;
+        }
+        article#listar_consultas .embaixo .triangulo:nth-child(3) {
+            border-bottom: 36px solid gray;
+            border-right: 17px solid transparent;
+        }
+        article#listar_consultas button:nth-child(1) {
+            background-color: #82d8e3;
+        }
+        article#listar_consultas button:nth-child(1):hover {
+            background-color: #2260ff;
+        }
+        article#listar_consultas button:nth-child(2) {
+            background-color: #ff8c8c;
+        }
+        article#listar_consultas button:nth-child(2):hover {
+            background-color: #ff2f2f;
+        }
+        article#listar_consultas th, article#listar_consultas td {
+            border-color: #858585;
+        }
+        button {
+            user-select: none;
+        }
+        footer {
+            position: absolute;
+            bottom: -20px;
+            user-select: none;
+            display: flex;
+            justify-content: center;
+            transition: box-shadow 1.6s ease-out;
+            box-shadow: none;
+            z-index: 2;
+        }
+        footer img {
+            transform: translateY(0px);
+            transition: transform 1.6s ease;
+            opacity: 0.5;
+            cursor: auto;
+            padding: 0px;
+        }
+        @keyframes incorreto {
+            0%, 100% {
+                color: black;
+                border-color: black;
+            }
+            50% {
+                color: red;
+                border-color: red;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="https://wiki.teamfortress.com/w/images/5/5b/Health_particle_red.png" alt="plus red(health simbol)" width="50">
+        <section class="sec-menu">
+            <div class="container">
+                <button id="pacientes">Paciente</button>
+                <div>
+                    <ul>
+                        <li id="listar-pacientes">Listar</li>
+                        <li id="cadastrar-paciente">Cadastrar</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="container">
+                <button id="medicos">Médico</button>
+                <div>
+                    <ul>
+                        <li id="listar-medicos">Listar</li>
+                        <li id="cadastrar-medico">Cadastrar</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="container">
+                <button id="cadastrar-consulta">Adicionar consulta</button>
+            </div>
+        </section>
+    </header>
+    <main>
+        <article id="listar"></article>
+        <article id="cadastrar"></article>
+        <article id="listar_consultas"></article>
+        <article id="pagina_inicial"></article>
+    </main>
+    <footer></footer>
+    <script>
+        const CORRECAO_FUSO_PARA_1 = 3600000;
+
+        const LOGO = document.querySelector("img");
+
+        const LISTAR = document.querySelector("article#listar");
+        const CADASTRAR = document.querySelector("article#cadastrar");
+        const LISTAR_CONSULTAS = document.querySelector("article#listar_consultas");
+        const PAGINA_INICIAL = document.querySelector("article#pagina_inicial");
+
+        const BTN_PACIENTES = document.querySelector("#pacientes");
+        const BTN_LISTAR_PACIENTES = document.querySelector("#listar-pacientes");
+        const BTN_CADASTRAR_PACIENTE = document.querySelector("#cadastrar-paciente");
+        const BTN_MEDICOS = document.querySelector("#medicos");
+        const BTN_LISTAR_MEDICOS = document.querySelector("#listar-medicos");
+        const BTN_CADASTRAR_MEDICO = document.querySelector("#cadastrar-medico");
+        const BTN_CADASTRAR_CONSULTA = document.querySelector("#cadastrar-consulta");
+
+        const ESPECIALIDADES = [];
+
+
+        window.onload = async () => {
+            try {
+                ESPECIALIDADES.push(...(await getEspecialidades()).map(especialidade => {
+                    return {
+                        id: especialidade.id,
+                        nome: especialidade.nome
+                    };
+                }));
+            } catch (e) {
+                alert("falha de conexão");
+            }
+        };
+
+        function removeNosDePagina(pagina) {
+            for (no of pagina.childNodes)
+                pagina.removeChild(no);
+        }
+
+        function paginacao(indexListar, indexCadastrar, indexListarConsultas, indexPaginaInicial) {
+            LISTAR.style.zIndex = indexListar || LISTAR.style.zIndex;
+            CADASTRAR.style.zIndex = indexCadastrar || CADASTRAR.style.zIndex;
+            LISTAR_CONSULTAS.style.zIndex = indexListarConsultas || LISTAR_CONSULTAS.style.zIndex;
+            PAGINA_INICIAL.style.zIndex = indexPaginaInicial || PAGINA_INICIAL.style.zIndex;
+        }
+
+        function especialidade(id) {
+            for (especialidade of ESPECIALIDADES) {
+                if (id === especialidade.id)
+                    return especialidade.nome;
+            }
+        }
+        
+        function animacaoCura() {
+            let footer = document.querySelector("footer");
+            footer.innerHTML = "";
+            for (let i=0;i<window.innerWidth/20-2;i++) {
+                footer.innerHTML += '<img src="https://wiki.teamfortress.com/w/images/5/5b/Health_particle_red.png" alt="animacaoCura plus red" width="20">'
+            }
+            setTimeout(() => {
+                footer.style.boxShadow = "0px 0px 100px 25px red";
+                for (i of document.querySelectorAll("footer img")) {
+                    i.style.transform = `translateY(-${Random(10, 71)}px)`
+                }
+            }, 200);
+            setTimeout(() => {
+                footer.style.boxShadow = "none";
+                for (i of document.querySelectorAll("footer img")) {
+                    i.style.transform = `translateY(0px)`
+                }
+            }, 1800);
+            setTimeout(() => {
+                footer.innerHTML = "";
+                footer.style.boxShadow = "";
+            }, 3600);
+        }
+
+        function animaBotaoInsucesso(botao) {
+            botao.style.animation = "incorrect 1s ease";
+            setTimeout(() => {
+                botao.style.animation = "";
+            }, 1000);
+        }
+
+        LOGO.addEventListener("click", () => {
+            paginacao(-2, -2, -2, -1);
+        });
+
+        BTN_PACIENTES.addEventListener("click", () => {
+            listarPacientes();
+        });
+        BTN_LISTAR_PACIENTES.addEventListener("click", () => {
+            listarPacientes();
+        });
+        BTN_CADASTRAR_PACIENTE.addEventListener("click", () => {
+            modificaPaciente(null);
+        });
+
+        BTN_MEDICOS.addEventListener("click", () => {
+            listarMedicos();
+        });
+        BTN_LISTAR_MEDICOS.addEventListener("click", () => {
+            listarMedicos();
+        });
+        BTN_CADASTRAR_MEDICO.addEventListener("click", () => {
+            modificaMedico(null);
+        });
+
+        BTN_CADASTRAR_CONSULTA.addEventListener("click", async () => {
+            modificaConsulta(null);
+        });
+
+        LISTAR_CONSULTAS.addEventListener("click", (e) => {
+            let xPosClick = e.clientX;
+            let yPosClick = e.clientY;
+            
+            const PRANCHETA = LISTAR_CONSULTAS.querySelector("section");
+            let xPosPrancheta = PRANCHETA.offsetLeft;
+            let larguraPrancheta = PRANCHETA.offsetWidth;
+            let yPosPrancheta = PRANCHETA.offsetTop;
+            let alturaPrancheta = PRANCHETA.offsetHeight;
+
+            const CLICK_FORA_X = xPosClick < xPosPrancheta || xPosClick > (xPosPrancheta + larguraPrancheta);
+            const CLICK_FORA_Y = yPosClick < yPosPrancheta || yPosClick > (yPosPrancheta + alturaPrancheta);
+
+            if (CLICK_FORA_X || CLICK_FORA_Y)
+                paginacao(null, null, -2, null);
+        });
+
+        /*
+
+            pacientes
+                |
+            consulta
+                |
+            medicos - espcialidade
+
+        */
+
+        function pacienteComponente(paciente) {
+            const PACIENTE = document.createElement("tr");
+
+            PACIENTE.id = paciente.id;
+
+            PACIENTE.innerHTML = 
+                `
+                <td>${paciente.nome}</td>
+                <td>${paciente.dataNascimento}</td>
+                <td>${paciente.dataCadastro}</td>
+                <td>
+                    <button>Ver consultas</button>
+                    <button>Editar</button>
+                    <button>Excluir</button>
+                </td>
+                `;
+
+            const VER_CONSULTAS = PACIENTE.querySelector("button:nth-child(1)");
+            const EDITAR = PACIENTE.querySelector("button:nth-child(2)");
+            const EXCLUIR = PACIENTE.querySelector("button:nth-child(3)");
+
+            VER_CONSULTAS.addEventListener("click", e => {
+                listarConsultas(true, PACIENTE.id);
+            });
+
+            EDITAR.addEventListener("click", e => {
+                modificaPaciente(paciente);
+            });
+
+            EXCLUIR.addEventListener("click", async e => {
+                try {
+                    resposta = await deletePaciente(PACIENTE.id);
+
+                    if (resposta.error) {
+                        animaBotaoInsucesso(EXCLUIR);
+                        return;
+                    }
+
+                    listarPacientes();
+                } catch (error) {
+                    alert("falha de conexão");
+                }
+            });
+
+            return PACIENTE;
+        }
+
+        async function listarPacientes() {
+            paginacao(-1, -2, -2, -2);
+            removeNosDePagina(LISTAR);
+
+            let PACIENTES;
+
+            LISTAR.innerHTML = 
+                `<header>Lista de pacientes</header>
+                <span style="text-align: center;font-size: 30px;">Loading...</span>`;
+
+            try {
+                PACIENTES = await getPacientes();
+            } catch (e) {
+                alert("falha de conexão");
+                return;
+            }
+
+            LISTAR.innerHTML = 
+                `<header>Lista de pacientes</header>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Data de nascimento</th>
+                            <th>Data de cadastro</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${PACIENTES.map(paciente => pacienteComponente(paciente)).join("\n")}
+                    </tbody>
+                </table>`;
+
+            animacaoCura();
+        }
+
+        async function modificaPaciente(paciente) {
+            paginacao(-2, -1, -2, -2);
+
+            removeNosDePagina(CADASTRAR);
+
+            CADASTRAR.innerHTML =
+                `<header>Edição de Paciente</header>
+                <section>
+                    <input type="hidden" value="${paciente ? paciente.id : ""}">
+                    <p>Paciente</p>
+                    <input type="text" value="${paciente ? paciente.nome : ""}">
+                    <p>Data de nascimento</p>
+                    <input type="date" value="${paciente ? paciente.dataNascimento : ""}">
+                    <button class="atu">${paciente ? "Atualizar" : "Cadastrar"}</button>
+                </section>`;
+
+            const BTN_MODIFICAR = CADASTRAR.querySelector("button");
+
+            BTN_MODIFICAR.addEventListener("click", async e => {
+                const ID = CADASTRAR.querySelector("input[type=hidden]");
+                const NOME = CADASTRAR.querySelector("input[type=text]");
+                const DATA_NASCIMENTO = CADASTRAR.querySelector("input[type=date]");
+
+                if (!NOME.value ||
+                    new Date(DATA_NASCIMENTO.value + "T00:00:00").getTime()
+                    > new Date().getTime() + CORRECAO_FUSO_PARA_1) {
+                    alert("nome inexistente ou data de nascimento inválida");
+                    return;
+                }
+
+                try {
+                    if (paciente)
+                        resposta = await editPaciente({
+                            idPaciente: ID.value,
+                            novoNome: NOME.value,
+                            novaDataNascimento: DATA_NASCIMENTO.value
+                        });
+                    else
+                        resposta = await createPaciente({
+                            nome: NOME.value,
+                            dataNascimento: DATA_NASCIMENTO.value
+                        });
+                    
+                    if (resposta.error) {
+                        animaBotaoInsucesso(BTN_MODIFICAR);
+                        return;
+                    }
+
+                    ID.value = "";
+                    NOME.value = "";
+                    DATA_NASCIMENTO.value = "";
+
+                    animacaoCura();
+                } catch (error) {
+                    alert("falha de conexão");
+                }
+            });
+        }
+
+        function medicoComponente(medico) {
+            const MEDICO = document.createElement("tr");
+
+            MEDICO.id = paciente.id;
+
+            MEDICO.innerHTML = 
+                `
+                <td>${medico.nome}</td>
+                <td>${especialidade(medico.idEspecialidade)}</td>
+                <td>${medico.dataCadastro}</td>
+                <td>
+                    <button>Ver consultas</button>
+                    <button>Editar</button>
+                    <button>Excluir</button>
+                </td>
+                `;
+
+            const VER_CONSULTAS = MEDICO.querySelector("button:nth-child(1)");
+            const EDITAR = MEDICO.querySelector("button:nth-child(2)");
+            const EXCLUIR = MEDICO.querySelector("button:nth-child(3)");
+
+            VER_CONSULTAS.addEventListener("click", e => {
+                listarConsultas(false, MEDICO.id);
+            });
+
+            EDITAR.addEventListener("click", e => {
+                modificaMedico(medico);
+            });
+
+            EXCLUIR.addEventListener("click", async e => {
+                try {
+                    resposta = await deleteMedico(MEDICO.id);
+
+                    if (resposta.error) {
+                        animaBotaoInsucesso(EXCLUIR);
+                        return;
+                    }
+
+                    listarMedicos();
+                } catch (error) {
+                    alert("falha de conexão");
+                }
+            });
+
+            return MEDICO;
+        }
+
+        async function listarMedicos() {
+            paginacao(-1, -2, -2, -2);
+            removeNosDePagina(LISTAR);
+
+            let MEDICOS;
+
+            LISTAR.innerHTML =
+                `<header>Lista de médicos</header>
+                <span style="text-align: center;font-size: 30px;">Loading...</span>`;
+
+            try {
+                MEDICOS = await getMedicos();
+            } catch (e) {
+                alert("falha de conexão");
+                return;
+            }
+
+            LISTAR.innerHTML = 
+                `<header>Lista de médicos</header>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Especialidade</th>
+                            <th>Data de cadastro</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${MEDICOS.map(medico => medicoComponente(medico)).join("\n")}
+                    </tbody>
+                </table>`;
+
+            animacaoCura();
+        }
+
+        async function modificaMedico(medico) {
+            paginacao(-2, -1, -2, -2);
+
+            removeNosDePagina(CADASTRAR);
+
+            CADASTRAR.innerHTML =
+                `<header>Edição de Médico</header>
+                <section>
+                    <input type="hidden" value="${medico ? medico.id : ""}"
+                    <p>Nome</p>
+                    <input type="text" value="${medico ? medico.nome : ""}">
+                    <p>Especialidade</p>
+                    <select>
+                        <option></option>
+                        ${especialidades
+                            .map(especialidade =>
+                                `<option value="${especialidade.id}" ${medico ? "selected" : ""}>
+                                    ${especialidade.nome}</option>`
+                            )
+                            .join("\n")
+                        }
+                    </select>
+                    <button class="atu">${medico ? "Atualizar" : "Cadastrar"}</button>
+                </section>`;
+
+            const BTN_MODIFICAR = CADASTRAR.querySelector("button");
+
+            BTN_MODIFICAR.addEventListener("click", async e => {
+                const ID = CADASTRAR.querySelector("input[type=hidden]");
+                const NOME = CADASTRAR.querySelector("input[type=text]");
+                const ESPECIALIDADE = CADASTRAR.querySelector("select");
+
+                if (!NOME.value || !ESPECIALIDADE.value) {
+                    alert("nome inexistente ou especialidade não selecionada");
+                    return;
+                }
+
+                try {
+                    if (medico)
+                        resposta = await editMedico({
+                            idMedico: ID.value,
+                            novoNome: NOME.value,
+                            idNovaEspecialidade: ESPECIALIDADE.value
+                        });
+                    else
+                        resposta = await createMedico({
+                            nome: NOME.value,
+                            idEspecialidade: ESPECIALIDADE.value
+                        });
+                    
+                    if (resposta.error) {
+                        animaBotaoInsucesso(BTN_MODIFICAR);
+                        return;
+                    }
+
+                    ID.value = "";
+                    NOME.value = "";
+                    ESPECIALIDADE.value = "";
+    
+                    animacaoCura();
+                } catch (error) {
+                    alert("falha de conexão");
+                }
+            });
+        }
+
+        function consultaComponente(eDePaciente, consulta, pessoas) {
+            const CONSULTA = document.createElement("tr");
+
+            CONSULTA.id = consulta.id;
+
+            CONSULTA.innerHTML =
+                `<td>${
+                    eDePaciente
+                    ?
+                    pessoas.find(({ id }) => id === consulta.idMedico)
+                    :
+                    pessoas.find(({ id }) => id === consulta.idPaciente)
+                }</td>
+                <td>${consulta.data}</td>
+                <td>
+                    <button">Editar</button>
+                    <button">Excluir</button>
+                </td>`;
+
+            const EDITAR = CONSULTA.querySelector("button:nth-child(1)");
+            const EXCLUIR = CONSULTA.querySelector("button:nth-child(2)");
+
+            EDITAR.addEventListener("click", e => {
+                modificaConsulta(consulta);
+            });
+
+            EXCLUIR.addEventListener("click", async e => {
+                try {
+                    resposta = await deleteConsulta(CONSULTA.id);
+
+                    if (resposta.error) {
+                        animaBotaoInsucesso(EXCLUIR);
+                        return;
+                    }
+    
+                    listarConsultas(
+                        eDePaciente,
+                        eDePaciente ? consulta.idPaciente : consulta.idMedico
+                    );
+                } catch (error) {
+                    alert("falha de conexão");
+                }
+            });
+
+            return CONSULTA;
+        }
+
+        async function listarConsultas(eDePaciente, id) {
+            paginacao(-1, -2, 1, -2);
+
+            removeNosDePagina(LISTAR_CONSULTAS);
+
+            LISTAR_CONSULTAS.innerHTML =
+                `<section>
+                    <div class="container">
+                        <div class="em_cima">
+                            <div class="triangulo"></div>
+                            <div class="quadrado"></div>
+                            <div class="triangulo"></div>
+                        </div>
+                        <div class="embaixo">
+                            <div class="triangulo"></div>
+                            <div class="quadrado"></div>
+                            <div class="triangulo"></div>
+                        </div>
+                    </div>
+                    <header>Lista de ${eDePaciente ? "Médico" : "Paciente"}</header>
+                    <span style="text-align: center;font-size: 30px;">Loading...</span>
+                </section>`
+
+            let [ PACIENTES, MEDICOS, CONSULTAS] =
+                await Promise.all([getPacientes(), getMedicos(), getConsultas()]);
+
+            const NOME = eDePaciente ?
+                PACIENTES.find(paciente => paciente.id === id).nome
+                :
+                MEDICOS.find(medico => medico.id === id).nome;
+
+            LISTAR_CONSULTAS.innerHTML =
+                `<section>
+                    <div class="container">
+                        <div class="em_cima">
+                            <div class="triangulo"></div>
+                            <div class="quadrado"></div>
+                            <div class="triangulo"></div>
+                        </div>
+                        <div class="embaixo">
+                            <div class="triangulo"></div>
+                            <div class="quadrado"></div>
+                            <div class="triangulo"></div>
+                        </div>
+                    </div>
+                    <header>${NOME}</header>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>${eDePaciente ? "Médico" : "Paciente"}</th>
+                                <th>Data da consulta</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${consultas
+                                .filter(consulta =>
+                                    eDePaciente ?
+                                    consulta.idPaciente === id : consulta.idMedico === id)
+                                .map(consulta =>
+                                    consultaComponente(eDePaciente,
+                                    consulta,
+                                    eDePaciente ? MEDICOS : PACIENTES))
+                                .join("\n")
+                            }
+                        </tbody>
+                    </table>
+                </section>`
+        }
+
+        async function modificaConsulta(consulta) {
+            paginacao(-2, -1, -2, -2);
+            
+            let PACIENTES;
+            let MEDICOS;
+
+            try {
+                [ PACIENTES, MEDICOS ] = await Promise.all(getPacientes(), getMedicos);
+            } catch (error) {
+                alert("falha de conexão");
+                return;
+            }
+
+            removeNosDePagina(CADASTRAR);
+
+            const DIA = consulta ? consulta.data.substring(0, consulta.data.indexOf("T")) : "";
+            const HORARIO = consulta ? consulta.data.substring(consulta.data.indexOf("T") + 1) : "";
+
+            CADASTRAR.innerHTML = 
+                `<header>Edição de Consulta</header>
+                <section>
+                    <input type="hidden" value="${consulta ? consulta.id : ""}">
+                    <p>Paciente</p>
+                    <select>
+                        <option></option>
+                        ${PACIENTES
+                            .map(paciente =>
+                                `<option value="${paciente.id}"
+                                    ${paciente.id === consulta.idPaciente ? "selected" : ""}>
+                                    ${paciente.nome}</option>`
+                            )
+                            .join("\n")
+                        }
+                    </select>
+                    <p>Médico</p>
+                    <select>
+                        <option></option>
+                        ${MEDICOS
+                            .map(medico =>
+                                `<option value="${medico.id}"
+                                    ${medico.id === consulta.idMedico ? "selected" : ""}>
+                                    ${medico.nome}</option>`
+                            )
+                            .join("\n")
+                        }
+                    </select>
+                    <p>Data e hora da consulta</p>
+                    <div class="datetime">
+                        <input type="date" value="${DIA}">
+                        <input type="time" value="${HORARIO}">
+                    </div>
+                    <button class="atu">${consulta ? "Atualizar" : "Cadastrar"}</button>
+                </section>`;
+            
+            const BTN_MODIFICAR = CADASTRAR.querySelector("button");
+
+            BTN_MODIFICAR.addEventListener("click", async e => {
+                const ID_CONSULTA = CADASTRAR.querySelector("input[type=hidden]");
+                const ID_PACIENTE = CADASTRAR.querySelector("select:nth-child(1)");
+                const ID_MEDICO = CADASTRAR.querySelector("select:nth-child(2)");
+                const DIA = CADASTRAR.querySelector("input[type=date]");
+                const HORARIO = CADASTRAR.querySelector("input[type=time]");
+
+                if (!ID_PACIENTE.value || !ID_MEDICO.value ||
+                    new Date(DIA.value + "T" + HORARIO.value).getTime()
+                    < new Date().getTime() + CORRECAO_FUSO_PARA_1
+                ) {
+                    alert("paciente não selecionado ou médico não selecionado ou data inválida");
+                    return;
+                }
+
+                try {
+                    if (consulta)
+                        resposta = await editConsulta({
+                            idConsulta: ID_CONSULTA.value,
+                            idNovoPaciente: ID_PACIENTE.value,
+                            idNovoMedico: ID_MEDICO.value,
+                            novaData: DIA.value + "T" + HORARIO.value
+                        });
+                    else
+                        resposta = await createConsulta({
+                            idPaciente: ID_PACIENTE.value,
+                            idMedico: ID_MEDICO.value,
+                            data: DIA.value + "T" + HORARIO.value
+                        });
+
+                    if (resposta.error) {
+                        animaBotaoInsucesso(BTN_MODIFICAR);
+                        return;
+                    }
+
+                    ID_PACIENTE.value = "";
+                    ID_MEDICO.value = "";
+                    DIA.value = "";
+                    HORARIO.value = "";
+    
+                    animacaoCura();
+                } catch (error) {
+                    alert("falha de conexão");
+                }
+            });
+        }
+    </script>
+</body>
+</html>

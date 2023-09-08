@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boletim 2.0</title>
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <style>
+        body {
+            display: grid;
+            gap: 1em;
+            align-items: center;
+            font-family: system-ui;
+            margin: 0px;
+            background-color: #1b1b1b;
+        }
+        body > header {
+            display: grid;
+            place-items: center;
+        }
+        header span {
+            color: #ffffff;
+            font-size: 44px;
+        }
+        header p {
+            font-size: 2em;
+        }
+        p {
+            color: #ffffff;
+            margin-bottom: 5px;
+            font-size: 20px;
+        }
+        input {
+            width: 400px;
+            height: 25px;
+            border-radius: 5px;
+            border: none;
+        }
+        button {
+            border: none;
+            height: 25px;
+            margin: 10px;
+            border-radius: 5px;
+            background-color: #ffffff;
+            font-size: 17px;
+        }
+        main {
+            width: 100%;
+            display: none;
+            justify-items: center;
+        }
+        div header {
+            font-size: 20px;
+        }
+        div p {
+            margin: unset;
+        }
+        main .alunos {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .alunos section {
+            margin: 10px;
+            display: grid;
+            grid-template-areas: 
+                'menos notas mais'
+                'menos notas mais'
+                'menos remove mais';
+            grid-gap: 0px;
+        }
+        section button {
+            width: 100%;
+            margin: 0px;
+            height: auto;
+            background-color: transparent;
+            border-radius: 0px
+        }
+        section .notas {
+            margin: 5px;
+            display: grid;
+            justify-items: center;
+            gap: 5px;
+            color: white;
+        }
+        .menos {
+            grid-area: menos;
+            width: 100%;
+            font-size: 30px;
+        }
+        .remover {
+            grid-area: remove;
+            width: 100%;
+            font-size: 20px;
+        }
+        .remover:hover {
+            box-shadow: 0px 10px 4px -3px #ff3030;
+        }
+        .mais {
+            grid-area: mais;
+            width: 100%;
+            font-size: 30px;
+        }
+        .notas {
+            grid-area: notas;
+        }
+        .mais-bs--alta:hover {
+            box-shadow: 10px 0 10px -3px #059669;
+        }
+        .mais-bs--media:hover {
+            box-shadow: 10px 0 10px -3px #f97316;
+        }
+        .mais-bs--baixa:hover {
+            box-shadow: 10px 0 10px -3px #dc2626;
+        }
+        .menos-bs--alta:hover {
+            box-shadow: -10px 0 10px -3px #059669;
+        }
+        .menos-bs--media:hover {
+            box-shadow: -10px 0 10px -3px #f97316;
+        }
+        .menos-bs--baixa:hover {
+            box-shadow: -10px 0 10px -3px #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <span>Boletim IFSP</span>
+        <div>
+            <p>Quantidade</p>
+            <input type="number" placeholder="Digite a quantidade">
+            <button id="cadastrar">Cadastrar</button>
+        </div>
+    </header>
+    <main>
+        <header>
+            <button id="adicionar">Adicionar</button>
+            <button id="remover">Remover</button>
+            <button id="remover-pior-media">Remover pior média</button>
+        </header>
+        <div class="alunos"></div>
+    </main>
+    <script>
+        const BTN_CADASTRAR = $("#cadastrar");
+        const NOVOS_CADASTROS = $("input");
+
+        const BTN_ADICIONAR = $("#adicionar");
+        const BTN_REMOVER = $("#remover");
+        const BTN_REMOVER_PIOR_MEDIA = $("#remover-pior-media");
+
+        const ALUNOS = $("div.alunos");
+
+        function round(numero, casas = 2) {
+            return Number(numero.toString().slice(0, 2 + casas));
+        }
+
+        function gerarNota() {
+            const NOTA = (Math.random() * 101)/10;
+
+            if(NOTA > 10)
+                return 10;
+
+            return round(NOTA);
+        }
+
+        function adiciona_nota(nota, valor) {
+            const NOVA_NOTA = round(nota + valor);
+
+            if (valor === 1)
+                return NOVA_NOTA > 10 ? 10 : NOVA_NOTA;
+            
+            return NOVA_NOTA < 0 ? 0 : NOVA_NOTA;
+        }
+
+        function obtem_index_pior_media() {
+            const MEDIAS = $("section div p:nth-child(5)");
+            let menorMedia = 11;
+            let index = 0;
+
+            for (let i = 0; i < MEDIAS.length; i++) {
+                const MEDIA = Number(MEDIAS.eq(i).text().slice(7));
+
+                if (menorMedia > MEDIA)
+                    [menorMedia, index] = [MEDIA, i];
+
+                if (menorMedia === 0)
+                    break;
+            }
+
+            return index;
+        }
+
+        function reordenarAlunos(index) {
+            const NOME_ALUNOS = $(".alunos section div header");
+
+            for (let i = index; i < NOME_ALUNOS.length; i++) {
+                NOME_ALUNOS.eq(i).text(`Aluno ${i+1}`);
+            }
+        }
+
+        function corNota(nota) {
+            if (nota >= 6)
+                return "#059669";
+
+            if (nota >= 4)
+                return "#f97316";
+
+            return "#dc2626";
+        }
+
+        function muda_classe(botao, lado, novaClasse) {
+            if (lado === "decrementar") {
+                botao.removeClass("menos-bs--alta");
+                botao.removeClass("menos-bs--media");
+                botao.removeClass("menos-bs--baixa");
+            } else {
+                botao.removeClass("mais-bs--alta");
+                botao.removeClass("mais-bs--media");
+                botao.removeClass("mais-bs--baixa");
+            }
+
+            botao.addClass(novaClasse);
+        }
+
+        function classe_box_shadow(lado, nota) {
+            if (lado === "decrementar") {
+                if (nota >= 6)
+                    return "menos-bs--alta";
+
+                if (nota >= 4)
+                    return "menos-bs--media";
+
+                return "menos-bs--baixa";
+            }
+
+            if (nota >= 6)
+                    return "mais-bs--alta";
+
+            if (nota >= 4)
+                return "mais-bs--media";
+
+            return "mais-bs--baixa";
+        }
+
+        function corAluno(media) {
+            if (media >= 6)
+                return "#86efac";
+
+            if (media >= 4)
+                return "#ffc458";
+
+            return "#ffa6a6";
+        }
+
+        function novoAluno(index) {
+            const ALUNO = $("<section>");
+
+            const NOTAS = $("<div>");
+            const NUMERO = $("<header>");
+            const TEXT_NOTA1 = $("<p>");
+            const TEXT_NOTA2 = $("<p>");
+            const TEXT_NOTA3 = $("<p>");
+            const TEXT_MEDIA = $("<p>");
+
+            const BTN_DECREMENTAR = $("<button>");
+            const BTN_REMOVER = $("<button>");
+            const BTN_INCREMENTAR = $("<button>");
+
+            const NOTA1 = gerarNota();
+            const NOTA2 = gerarNota();
+            const NOTA3 = gerarNota();
+            const MEDIA = round((NOTA1+NOTA2+NOTA3)/3);
+
+            NUMERO.text(`Aluno ${index+1}`);
+
+            TEXT_NOTA1.text(`Nota 1: ${NOTA1}`);
+            TEXT_NOTA1.css("color", corNota(NOTA1));
+
+            TEXT_NOTA2.text(`Nota 2: ${NOTA2}`);
+            TEXT_NOTA2.css("color", corNota(NOTA2));
+
+            TEXT_NOTA3.text(`Nota 3: ${NOTA3}`);
+            TEXT_NOTA3.css("color", corNota(NOTA3));
+
+            TEXT_MEDIA.text(`Média: ${MEDIA}`);
+            TEXT_MEDIA.css("color", corNota(MEDIA));
+
+            NOTAS.addClass("notas");
+            NOTAS.append(NUMERO);
+            NOTAS.append(TEXT_NOTA1);
+            NOTAS.append(TEXT_NOTA2);
+            NOTAS.append(TEXT_NOTA3);
+            NOTAS.append(TEXT_MEDIA);
+
+            BTN_DECREMENTAR.addClass("menos");
+            BTN_DECREMENTAR.text("-");
+            BTN_DECREMENTAR.click(() => modifica_aluno(ALUNO, -1));
+            muda_classe(BTN_DECREMENTAR, "decrementar", classe_box_shadow("decrementar", MEDIA - 1));
+
+            BTN_INCREMENTAR.addClass("mais");
+            BTN_INCREMENTAR.text("+");
+            BTN_INCREMENTAR.click(() => modifica_aluno(ALUNO, 1));
+            muda_classe(BTN_INCREMENTAR, "incrementar", classe_box_shadow("incrementar", MEDIA + 1));
+
+            BTN_REMOVER.addClass("remover");
+            BTN_REMOVER.text("Remover");
+            BTN_REMOVER.click(e => {
+                $(e.target.parentNode).remove();
+                reordenarAlunos(index);
+            });
+
+            ALUNO.append(BTN_DECREMENTAR);
+            ALUNO.append(NOTAS);
+            ALUNO.append(BTN_REMOVER);
+            ALUNO.append(BTN_INCREMENTAR);
+            ALUNO.css("background-color", corAluno(MEDIA));
+
+            return ALUNO;
+        }
+
+        function modifica_aluno(aluno, valor) {
+            const TEXT_NOTA1 = aluno.children("div").children("p").eq(0);
+            const TEXT_NOTA2 = aluno.children("div").children("p").eq(1);
+            const TEXT_NOTA3 = aluno.children("div").children("p").eq(2);
+            const TEXT_MEDIA = aluno.children("div").children("p").eq(3);
+
+            const BTN_DECREMENTAR = aluno.children("button.menos");
+            const BTN_INCREMENTAR = aluno.children("button.mais");
+
+            const NOTA1 = adiciona_nota(Number(TEXT_NOTA1.text().slice(8)), valor);
+            const NOTA2 = adiciona_nota(Number(TEXT_NOTA2.text().slice(8)), valor);
+            const NOTA3 = adiciona_nota(Number(TEXT_NOTA3.text().slice(8)), valor);
+
+            const MEDIA = round((NOTA1+NOTA2+NOTA3)/3);
+
+            TEXT_NOTA1.text(`Nota 1: ${NOTA1}`);
+            TEXT_NOTA1.css("color", corNota(NOTA1));
+
+            TEXT_NOTA2.text(`Nota 2: ${NOTA2}`);
+            TEXT_NOTA2.css("color", corNota(NOTA2));
+
+            TEXT_NOTA3.text(`Nota 3: ${NOTA3}`);
+            TEXT_NOTA3.css("color", corNota(NOTA3));
+
+            TEXT_MEDIA.text(`Média: ${MEDIA}`);
+            TEXT_MEDIA.css("color", corNota(MEDIA));
+
+            aluno.css("background-color", corAluno(MEDIA));
+
+            muda_classe(BTN_DECREMENTAR, "decrementar", classe_box_shadow("decrementar", MEDIA - 1));
+
+            muda_classe(BTN_INCREMENTAR, "incrementar", classe_box_shadow("incrementar", MEDIA + 1));
+        }
+
+        BTN_CADASTRAR.click(() => {
+            if (ALUNOS.children("section").length === 0)
+                ALUNOS.parent("main").css("display", "grid");
+
+            for (let i = 0; i < NOVOS_CADASTROS.val(); i++) {
+                let aluno = novoAluno(ALUNOS.children("section").length);
+                ALUNOS.append(aluno);
+            }
+
+            NOVOS_CADASTROS.val("");
+        });
+
+        BTN_ADICIONAR.click(() => {
+            let aluno = novoAluno(ALUNOS.children("section").length);
+            ALUNOS.append(aluno);
+        });
+
+        BTN_REMOVER.click(() => {
+            if (ALUNOS.children("section").length === 0)
+                return;
+
+            if (ALUNOS.children("section").length === 1)
+                ALUNOS.parent("main").css("display", "none");
+
+            ALUNOS.children("section").eq(ALUNOS.children("section").length-1).remove();
+        });
+
+        BTN_REMOVER_PIOR_MEDIA.click(() => {
+            if (ALUNOS.children("section").length === 0)
+                return;
+
+            if (ALUNOS.children("section").length === 1)
+                ALUNOS.parent("main").css("display", "none");
+
+            let indexPiorMedia = obtem_index_pior_media();
+
+            ALUNOS.children("section").eq(indexPiorMedia).remove();
+
+            reordenarAlunos(indexPiorMedia);
+        });
+    </script>
+</body>
+</html>

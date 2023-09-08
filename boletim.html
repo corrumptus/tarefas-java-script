@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boletim IFSP</title>
+    <style>
+        body {
+            display: grid;
+            align-items: center;
+            font-family: system-ui;
+            margin: 0px;
+            background-color: #5a76b3;
+            padding: 0 1em;
+        }
+        header {
+            display: grid;
+            gap: 1.5em;
+            color: #fafaf9;
+        }
+        header span {
+            font-size: 2.5em;
+            text-align: center;
+        }
+        header div {
+            display: grid;
+            place-items: center;
+        }
+        header div p {
+            margin-block: 5px;
+            font-size: 1.5em;
+        }
+        input {
+            width: 50%;
+            height: 25px;
+            border-radius: 5px;
+            border: none;
+        }
+        button {
+            border: none;
+            height: 25px;
+            margin: 10px;
+            border-radius: 5px;
+            background-color: #fff7ed;
+            font-size: 17px;
+        }
+        main {
+            width: 100%;
+            border-radius: 10px;
+            display: none;
+            box-shadow: 0px 0px 10px 0px #ababab;
+            align-items: center;
+            background-color: #24242480;
+        }
+        main div {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        table {
+            display: block;
+            width: 100%;
+            overflow: auto;
+        }
+        thead, tbody {
+            display: grid;            
+        }
+        tr {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+        }
+        th, td {
+            text-align: center;
+        }
+        th, td.aluno {
+            color: #d4d4d4;
+        }
+        td {
+            text-align: center;
+        }
+        .aprovado {
+            color: #15eda5;
+        }
+        .recuperacao {
+            color: #ffa033;
+        }
+        .reprovado {
+            color: #ff8484;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <span>Boletim IFSP</span>
+        <div>
+            <p>Quantidade</p>
+            <input type="number" placeholder="Digite a quantidade">
+            <button id="cadastra">Cadastrar</button>
+        </div>
+    </header>
+    <main>
+        <div>
+            <button id="adiciona">Adicionar</button>
+            <button id="remove">Remover</button>
+            <button id="remove-pior-media">Remover pior média</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Nota 1</th>
+                    <th>Nota 2</th>
+                    <th>Nota 3</th>
+                    <th>Média</th>
+                    <th>Resultado</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </main>    
+    <script>
+        const MAIN = document.querySelector("main");
+        const TABELA = document.querySelector("tbody");
+
+        const INP_CADASTRAR = document.querySelector("input");
+        const BTN_CADASTRAR = document.querySelector("#cadastra");
+
+        const BTN_ADICIONAR = document.querySelector("#adiciona");
+        const BTN_REMOVER = document.querySelector("#remove");
+        const BTN_REMOVER_PIOR_MEDIA = document.querySelector("#remove-pior-media");
+
+        function round(numero, casas = 2) {
+            return Number(numero.toString().slice(0, 2 + casas));
+        }
+
+        function gerarNota() {
+            const NOTA = (Math.random() * 101)/10;
+
+            if(NOTA > 10)
+                return 10;
+
+            return round(NOTA, 2);
+        }
+
+        function obterIndexPiorNota() {
+            let media = 11;
+            let index = 0;
+
+            const MEDIAS = TABELA.querySelectorAll(".media");
+
+            for (let i in MEDIAS) {
+                if (media > MEDIAS[i].innerText) {
+                    [media, index] = [MEDIAS[i].innerText, i];
+                }
+
+                if (media == 0)
+                    break;
+            }
+
+            return index;
+        }
+
+        function novoAluno(id) {
+            const NOTA1 = gerarNota();
+            const NOTA2 = gerarNota();
+            const NOTA3 = gerarNota();
+
+            const MEDIA = round((NOTA1+NOTA2+NOTA3)/3, 2);
+            const ESTADO_FINAL = estado(MEDIA);
+
+            return `<tr>
+                        <td class="aluno">Aluno ${id}</td>
+                        <td class="${estado(NOTA1)}">${NOTA1}</td>
+                        <td class="${estado(NOTA2)}">${NOTA2}</td>
+                        <td class="${estado(NOTA3)}">${NOTA3}</td>
+                        <td class="media ${ESTADO_FINAL}">${MEDIA}</td>
+                        <td class="${ESTADO_FINAL}">${ESTADO_FINAL}</td>
+                    </tr>`;
+        }
+
+        function estado(media) {
+            if (media >= 6)
+                return "aprovado";
+
+            if (media >= 4)
+                return "recuperacao";
+
+            return "reprovado";
+        }
+
+        function adicionar(quantidade) {
+            const QUANTIDADE_ALUNOS = TABELA.querySelectorAll("tr").length;
+
+            if (QUANTIDADE_ALUNOS == 0)
+                MAIN.style.display = "grid";
+
+            for (let i = 0; i < quantidade; i++)
+                TABELA.innerHTML += novoAluno(QUANTIDADE_ALUNOS+i);
+        }
+
+        function remover(index) {
+            const ALUNOS = TABELA.querySelectorAll("tr");
+
+            if (ALUNOS.length == 1)
+                MAIN.style.display = "";
+
+            if (ALUNOS.length > 0)
+                ALUNOS[index].remove();
+        }
+        
+        BTN_CADASTRAR.addEventListener("click", () => {
+            adicionar(INP_CADASTRAR.value);
+            INP_CADASTRAR.value = '';
+        });
+
+        BTN_ADICIONAR.addEventListener("click", () => {
+            adicionar(1);
+        });
+
+        BTN_REMOVER.addEventListener("click", () => {
+            const ALUNOS = TABELA.querySelectorAll("tr");
+
+            remover(ALUNOS.length-1);
+        });
+
+        BTN_REMOVER_PIOR_MEDIA.addEventListener("click", () => {
+            remover(obterIndexPiorNota());
+
+            const ALUNOS = document.querySelectorAll(".aluno");
+
+            for (let i in ALUNOS ) {
+                ALUNOS[i].innerText = `Aluno ${i}`;
+            }
+        });
+    </script>
+</body>
+</html>
